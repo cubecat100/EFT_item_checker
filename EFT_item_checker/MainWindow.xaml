@@ -5,16 +5,18 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:EFT_item_checker"
         mc:Ignorable="d"
+        
+        Closed="Window_Closed"
         Title="MainWindow" Height="450" MinHeight="450" Width="800" MinWidth="800">
     <Grid Background="Gray">
         <Grid.RowDefinitions>
             <RowDefinition Height="1*"/>
-            <RowDefinition Height="100"/>
+            <RowDefinition Height="60"/>
         </Grid.RowDefinitions>
 
         <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="200"/>
+                <ColumnDefinition Width="250"/>
                 <ColumnDefinition Width="6*"/>
             </Grid.ColumnDefinitions>
 
@@ -53,6 +55,8 @@
                         <TextBlock Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" IsEnabled="{Binding CheckBoxEnabled, Mode=TwoWay}">
                             <CheckBox Content="선택" IsChecked="{Binding IsSelectableQuestsVisible}"/>
                         </TextBlock>
+
+                        <Button Content="Reset" Grid.Column="2" Grid.Row="1" Grid.ColumnSpan="2" Margin="2" Command="{Binding ResetCommand}"/>
 
                     </Grid>
 
@@ -142,9 +146,16 @@
         </Grid>
 
         <Grid Grid.Row="1" Background="White" Margin="2">
-            <TextBlock Text="" HorizontalAlignment="Center" VerticalAlignment="Center">
-                <Hyperlink NavigateUri="{Binding Description, Mode=OneWay}">this</Hyperlink>
-            </TextBlock>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="160"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" Text="{Binding Description}" VerticalAlignment="Center" Margin="15,5,15,5"/>
+
+            <Button Grid.Column="1" Content="Go To Wiki"
+                Command="{Binding OpenLinkCommand}"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
         </Grid>
     </Grid>
 </Window>

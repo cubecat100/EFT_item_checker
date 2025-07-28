@@ -2,6 +2,9 @@
 using EFT_item_checker.Service;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Security.Policy;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 
@@ -23,14 +26,47 @@ namespace EFT_item_checker.ViewModel
 
         public ObservableCollection<RequiredItem> FilteredItems { get; set; } = new ObservableCollection<RequiredItem>();
 
-        public Model.Task SelectedItem { get; set; }
-
         public ICommand ToggleSelectCommand { get; }
 
-        private Model.Task _task;
-        public Model.Task SelectedTask { get => _task; set => SelectedTaskData(value); }
+        public ICommand OpenLinkCommand { get; }
+        public ICommand ResetCommand { get; }
 
-        public string Description { get; set; } = "EFT 아이템 체크";
+        private string WikiUrl = "https://escapefromtarkov.fandom.com";
+        private string HideoutWikiUrl = "https://escapefromtarkov.fandom.com/wiki/Hideout";
+
+        public string Description { get; set; } = "escapefromtarkov wiki";
+
+        private Model.Task _task;
+        public Model.Task SelectedTask { 
+            get => _task; 
+            set 
+            {
+                _task = value;
+                OnPropertyChanged(nameof(SelectedTask));
+
+                DescriptionUpdate();
+            }
+        }
+
+        private void DescriptionUpdate()
+        {
+            if (_task == null)
+            {
+                Description = WikiUrl;
+            }
+            else if (_task.Type == TaskType.Quest)
+            {
+                Description = _task?.WikiLink ?? WikiUrl;
+            }
+            else if (_task.Type == TaskType.Station)
+            {
+                Description = HideoutWikiUrl;
+            }
+
+            OnPropertyChanged(nameof(Description));
+        }
+
+        public Model.Task SelectedItem { get; set; } = new Model.Task();
 
         public bool CheckBoxEnabled { get; set; } = false;
 
@@ -53,7 +89,6 @@ namespace EFT_item_checker.ViewModel
                     UpdateVisible();
 
                     OnPropertyChanged(nameof(IsStationsVisible));
-                    UpdateItemLists();
                 }
             }
         }
@@ -71,8 +106,6 @@ namespace EFT_item_checker.ViewModel
                     _isSelectableQuestsVisible = value;
                     
                     UpdateQuestVisibleProperty(value);
-
-                    UpdateItemLists();
                 }
             }
         }
@@ -92,8 +125,6 @@ namespace EFT_item_checker.ViewModel
                     }
 
                     UpdateQuestVisibleProperty(value);
-
-                    UpdateItemLists();
                 }
             }
         }
@@ -113,11 +144,11 @@ namespace EFT_item_checker.ViewModel
                     }
 
                     UpdateQuestVisibleProperty(value);
-
-                    UpdateItemLists();
                 }
             }
         }
+
+        #endregion
 
         private void UpdateQuestVisibleProperty(bool value)
         {
@@ -126,6 +157,8 @@ namespace EFT_item_checker.ViewModel
             OnPropertyChanged(nameof(IsQuestsVisible));
             OnPropertyChanged(nameof(IsSelectableQuestsVisible));
             OnPropertyChanged(nameof(IsKappaQuestsVisible));
+
+            UpdateItemLists();
         }
 
         private void UpdateVisible()
@@ -166,20 +199,14 @@ namespace EFT_item_checker.ViewModel
             }
         }
 
-        #endregion
-
-        private void SelectedTaskData(Model.Task task)
-        {
-            // 선택된 Task의 정보를 화면에 업데이트합니다.
-            Description = task?.WikiLink ?? string.Empty;
-
-            OnPropertyChanged(nameof(SelectedTask));
-        }
+        
 
         public MainViewModel()
         {
             // Task의 체크박스 선택 상태가 변경될 때
             ToggleSelectCommand = new RelayCommand<Model.Task>(OnToggleSelect);
+            OpenLinkCommand = new RelayCommand(ExecuteOpenLink);
+            ResetCommand = new RelayCommand(TaskSelectionReset);
 
             // TaskList의 항목이 추가/제거될 때마다 이벤트 구독/해제
             TaskList.CollectionChanged += (s, e) =>
@@ -201,6 +228,28 @@ namespace EFT_item_checker.ViewModel
             };
 
             LoadData();
+        }
+
+        private void TaskSelectionReset(object obj)
+        {
+            foreach( var task in TaskList)
+            {
+                task.IsSelected = false;
+            }
+
+            IsQuestsVisible = true;
+            IsStationsVisible = true;
+        }
+
+        private void ExecuteOpenLink(object obj)
+        {
+            var url = SelectedTask?.WikiLink ?? WikiUrl;
+
+            if (!string.IsNullOrEmpty(url))
+            {
+                // .NET Core/.NET 5+ 에서는 UseShellExecute를 true로 설정해야 합니다.
+                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+            }
         }
 
         private void OnTaskPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -245,6 +294,17 @@ namespace EFT_item_checker.ViewModel
             foreach (var station in TaskManager.Instance.AllStations)
             {
                 TaskList.Add(station);
+            }
+
+            // 사용자의 진행상황 적용
+            var selections = TaskManager.Instance.LoadSelections();
+
+            if (selections != null || selections.Count != 0)
+            {
+                foreach (var task in TaskList)
+                {
+                    task.IsSelected = selections.Contains(task.Id);
+                }
             }
 
             CheckBoxEnabled = true;

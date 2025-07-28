@@ -8,6 +8,16 @@ using System.Windows.Input;
 namespace EFT_item_checker.Model
 {
     // 제네릭 RelayCommand 구현
+    public class RelayCommand : RelayCommand<object>
+    {
+        public RelayCommand(Action<object> execute) : base(execute)
+        {
+        }
+
+        public RelayCommand(Action execute, Predicate<object> canExecute)
+            : base(param => execute(), canExecute) { }
+    }
+
     public class RelayCommand<T> : ICommand
     {
         private readonly Action<T> _execute;

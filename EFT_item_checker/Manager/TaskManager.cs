@@ -288,7 +288,7 @@ namespace EFT_item_checker.Service
             DataLoaded?.Invoke(this, new EventArgs());
         }
 
-        private List<string> LoadSelections()
+        public List<string> LoadSelections()
         {
             //유저의 진행정보를 불러오기
             try

@@ -22,5 +22,15 @@ namespace EFT_item_checker
             InitializeComponent();
             DataContext = new ViewModel.MainViewModel();
         }
+
+        private void Window_Closed(object sender, EventArgs e)
+        {
+            var vm = DataContext as ViewModel.MainViewModel;
+
+            if (vm != null)
+            {
+                vm.Dispose();
+            }
+        }
     }
 }
