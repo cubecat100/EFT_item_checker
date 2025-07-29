@@ -1,0 +1,48 @@
+# 워크플로우 이름
+name: .NET Desktop Direct Deploy
+
+# 워크플로우 실행 조건: master 브랜치에 push될 때
+on:
+  push:
+    branches: [ "master" ]
+
+jobs:
+  build-and-deploy:
+    # 실행 환경: Windows 최신 버전
+    runs-on: windows-latest
+
+    steps:
+      # 1. 소스 코드 가져오기
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2. .NET SDK 설치 (프로젝트에 맞는 버전으로 수정)
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      # 3. 프로젝트 종속성 복원
+      - name: Restore dependencies
+        run: dotnet restore YourSolutionName.sln
+
+      # 4. 유닛 테스트 실행 (테스트 프로젝트가 없는 경우 이 단계 제거 가능)
+      - name: Execute unit tests
+        run: dotnet test YourSolutionName.sln --no-restore
+
+      # 5. 애플리케이션 빌드 및 게시
+      # --configuration Release: 릴리스 모드로 빌드
+      # --output ./publish: 결과를 'publish' 폴더에 저장
+      - name: Build and publish
+        run: dotnet publish YourWpfProject/YourWpfProject.csproj --configuration Release --output ./publish --no-restore
+      
+      # 6. 게시된 파일들을 ZIP 파일로 압축
+      - name: Zip the publish folder
+        run: Compress-Archive -Path ./publish/* -DestinationPath YourApplicationName.zip
+      
+      # 7. 생성된 ZIP 파일을 아티팩트로 업로드
+      - name: Upload artifact for deployment
+        uses: actions/upload-artifact@v4
+        with:
+          name: wpf-application-zip # 아티팩트 이름
+          path: YourApplicationName.zip # 업로드할 파일 경로
