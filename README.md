@@ -4,7 +4,7 @@ Escape from Tarkov의 복잡한 퀘스트와 은신처 업그레이드에 필요
 
 수많은 퀘스트와 은신처 모듈에 어떤 아이템이 얼마나 필요한지 더 이상 헷갈리지 마세요. 이 프로그램은 여러분의 타르코프 여정을 더욱 체계적이고 편리하게 만들어 줄 것입니다.
 
-[릴리스 버전 목록](https://github.com/cubecat100/EFT_item_checker/releases)
+다운로드 : [릴리스 버전 목록](https://github.com/cubecat100/EFT_item_checker/releases)
 
 ## ✨ 주요 기능 (Key Features)
 
