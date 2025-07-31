@@ -20,16 +20,20 @@
                 <ColumnDefinition Width="6*"/>
             </Grid.ColumnDefinitions>
 
+
+
             <Grid Grid.Column="0" Background="White" Margin="2">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="25"/>
-                        <RowDefinition Height="55"/>
+                        <RowDefinition Height="85"/>
                         <RowDefinition Height="30*"/>
                     </Grid.RowDefinitions>
-                    
+
+
+
                     <TextBlock Grid.Row="0" Text="퀘스트/모듈 목록" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    
+
                     <Grid Grid.Row="1" Margin="5">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="1*"/>
@@ -40,29 +44,32 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="1*"/>
                             <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
                         </Grid.RowDefinitions>
 
-                        <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" VerticalAlignment="Center" IsEnabled="{Binding CheckBoxEnabled, Mode=TwoWay}">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" VerticalAlignment="Center" IsEnabled="{Binding ControlEnabled}">
                             <CheckBox Content="퀘스트" IsChecked="{Binding IsQuestsVisible}"/>
                         </TextBlock>
-                        <TextBlock Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="2" VerticalAlignment="Center" IsEnabled="{Binding CheckBoxEnabled, Mode=TwoWay}">
+                        <TextBlock Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="2" VerticalAlignment="Center" IsEnabled="{Binding ControlEnabled, Mode=TwoWay}">
                             <CheckBox Content="은신처 모듈" IsChecked="{Binding IsStationsVisible}"/>
                         </TextBlock>
 
-                        <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" IsEnabled="{Binding CheckBoxEnabled, Mode=TwoWay}">
+                        <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" IsEnabled="{Binding ControlEnabled}">
                             <CheckBox Content="필수" IsChecked="{Binding IsKappaQuestsVisible}"/>
                         </TextBlock>
-                        <TextBlock Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" IsEnabled="{Binding CheckBoxEnabled, Mode=TwoWay}">
+                        <TextBlock Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" IsEnabled="{Binding ControlEnabled}">
                             <CheckBox Content="선택" IsChecked="{Binding IsSelectableQuestsVisible}"/>
                         </TextBlock>
 
-                        <Button Content="Reset" Grid.Column="2" Grid.Row="1" Grid.ColumnSpan="2" Margin="2" Command="{Binding ResetCommand}"/>
+                        <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Center" Text="검색 :"/>
+                        <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="4" VerticalAlignment="Center" Margin="0,0,10,0"
+                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding ControlEnabled}"/>
 
                     </Grid>
 
                     <Grid Grid.Row="2">
                         <ListBox ItemsSource="{Binding VisibleTaskList}" BorderBrush="Black" BorderThickness="1"
-                                 SelectedItem="{Binding SelectedTask, Mode=TwoWay}" SelectionMode="Single">
+                                 SelectedItem="{Binding SelectedTask}" SelectionMode="Single">
                             <ListBox.ItemContainerStyle>
                                 <Style TargetType="ListBoxItem">
                                     <Setter Property="Visibility" Value="Visible"/>
@@ -80,7 +87,7 @@
                                             <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}" 
                                                       Command="{Binding DataContext.ToggleSelectCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" 
                                                       CommandParameter="{Binding}"/>
-                                            
+
                                             <TextBlock Text="{Binding Name}" Margin="5,0,0,0" HorizontalAlignment="Center"/>
                                         </StackPanel>
                                     </Border>
@@ -91,8 +98,10 @@
                     </Grid>
 
                 </Grid>
-                
+
             </Grid>
+
+
 
             <Grid Grid.Column="1" Background="White" Margin="2">
                 <Grid.RowDefinitions>
@@ -157,5 +166,32 @@
                 Command="{Binding OpenLinkCommand}"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
         </Grid>
+
+        <!-- 슬라이드 패널 -->
+        <Grid x:Name="SlidePanel" Width="200" Height="Auto"
+              Background="LightSlateGray"
+              HorizontalAlignment="Right" VerticalAlignment="Stretch"
+              Visibility="Collapsed" RenderTransformOrigin="0.0,0.0" Panel.ZIndex="100">
+            <Grid.RenderTransform>
+                <TranslateTransform x:Name="SlideTransform" X="200"/>
+            </Grid.RenderTransform>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="45"/>
+                <RowDefinition Height="1*"/>
+            </Grid.RowDefinitions>
+
+            <ScrollViewer Grid.Row="1">
+                <StackPanel >
+                    <Button Content="설정 초기화" Margin="10"/>
+                    <TextBlock Text="언어" HorizontalAlignment="Center" Margin="0,0,0,5"/>
+                    <ComboBox ItemsSource="{Binding LanguageList}" SelectedItem="{Binding SelectedLanguage}" Margin="10,0,10,0"/>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+
+        <!-- 열기 버튼 (오른쪽 상단에 고정) -->
+        <Button Content="≡" Width="30" Height="30" Margin="5" Panel.ZIndex="150" IsEnabled="{Binding ControlEnabled}"
+                HorizontalAlignment="Right" VerticalAlignment="Top" Click="OpenPanel_Click"/>
     </Grid>
 </Window>

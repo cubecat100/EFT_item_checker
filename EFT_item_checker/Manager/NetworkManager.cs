@@ -22,29 +22,37 @@ namespace EFT_item_checker.Manager
 
         private string uri = "https://api.tarkov.dev/graphql";
 
-        private Dictionary<string, string> itemQuery = new Dictionary<string, string>()
-        {
-            {"query", "{ items { id name shortName iconLink updated }}"}
-        };
+        private string lang = "en"; // 기본 언어 설정
 
-        private Dictionary<string, string> taskQuery = new Dictionary<string, string>()
-        {
-            {"query", "{ tasks { id name kappaRequired wikiLink taskRequirements { task { id } } objectives { ... on TaskObjectiveItem { item { id name shortName } count foundInRaid }}}}"}
-        };
+        private Dictionary<string, string> itemQuery;
 
-        private Dictionary<string, string> stationQuery = new Dictionary<string, string>()
-        {
-            {"query", "{ hideoutStations { id name levels { id level crafts { rewardItems { item{ id name }}} itemRequirements { item { id name } count quantity } stationLevelRequirements { station { id name } level } } } }"}
-        };
+        private Dictionary<string, string> taskQuery;
+
+        private Dictionary<string, string> stationQuery;
 
         private NetworkManager()
         {
-
+            
         }
 
         public void init()
         {
+            lang = Document.Instance.Settings[SettingType.Language];
 
+            itemQuery = new Dictionary<string, string>()
+            {
+                {"query", "{ items (lang : " + lang + ") { id name shortName iconLink updated }}" }
+            };
+
+            taskQuery = new Dictionary<string, string>()
+            {
+                {"query", "{ tasks (lang : " + lang + ") { id name kappaRequired wikiLink taskRequirements { task { id } } objectives { ... on TaskObjectiveItem { item { id name shortName } count foundInRaid }}}}" }
+            };
+
+            stationQuery = new Dictionary<string, string>()
+            {
+                {"query", "{ hideoutStations (lang : " + lang + ") { id name levels { id level crafts { rewardItems { item{ id name }}} itemRequirements { item { id name } count quantity } stationLevelRequirements { station { id name } level } } } }" }
+            };
         }
 
         public async Task<string> ConnectApiAsync(TaskType type)

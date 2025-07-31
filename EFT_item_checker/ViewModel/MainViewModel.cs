@@ -16,18 +16,52 @@ namespace EFT_item_checker.ViewModel
 
         public ObservableCollection<Model.Task> TaskList { get; set; } = new ObservableCollection<Model.Task>();
 
-        public ObservableCollection<Model.Task> VisibleTaskList         {
+        public ObservableCollection<Model.Task> VisibleTaskList
+        {
             get
             {
-                // TaskList에서 IsVisibility가 Visible인 항목만 필터링하여 반환
-                return new ObservableCollection<Model.Task>(TaskList.Where(task => task.IsVisibility == Visibility.Visible));
+                // TaskList에서 IsVisibility가 Visible인 항목만 필터링 후 정렬하여 반환
+                return new ObservableCollection<Model.Task>(
+                    TaskList
+                        .Where(task => task.IsVisibility == Visibility.Visible)
+                        .Where(task => string.IsNullOrEmpty(SearchText) || task.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase))
+                );
+            }
+        }
+
+        private string _searchText = string.Empty;
+        public string SearchText 
+        {
+            get => _searchText; 
+            set
+            {
+                _searchText = value;
+
+                OnPropertyChanged(nameof(VisibleTaskList));
+            }
+        }
+
+        public List<string> LanguageList => Enum.GetNames(typeof(LanguageType)).ToList();
+
+        public string SelectedLanguage
+        {
+            get => Document.Instance.Settings[SettingType.Language];
+            set
+            {
+                if (Document.Instance.Settings[SettingType.Language] != value)
+                {
+                    Document.Instance.Settings[SettingType.Language] = value;
+
+                    OnPropertyChanged(nameof(SelectedLanguage));
+
+                    MessageBox.Show("설정이 변경되었습니다. 프로그램을 다시 시작해주세요.");
+                }
             }
         }
 
         public ObservableCollection<RequiredItem> FilteredItems { get; set; } = new ObservableCollection<RequiredItem>();
 
         public ICommand ToggleSelectCommand { get; }
-
         public ICommand OpenLinkCommand { get; }
         public ICommand ResetCommand { get; }
 
@@ -68,7 +102,7 @@ namespace EFT_item_checker.ViewModel
 
         public Model.Task SelectedItem { get; set; } = new Model.Task();
 
-        public bool CheckBoxEnabled { get; set; } = false;
+        public bool ControlEnabled { get; set; } = false;
 
         object loc = new object();
 
@@ -297,7 +331,7 @@ namespace EFT_item_checker.ViewModel
             }
 
             // 사용자의 진행상황 적용
-            var selections = TaskManager.Instance.LoadSelections();
+            var selections = Document.Instance.Selections;
 
             if (selections != null || selections.Count != 0)
             {
@@ -307,8 +341,8 @@ namespace EFT_item_checker.ViewModel
                 }
             }
 
-            CheckBoxEnabled = true;
-            OnPropertyChanged(nameof(CheckBoxEnabled));
+            ControlEnabled = true;
+            OnPropertyChanged(nameof(ControlEnabled));
 
             UpdateItemLists();
         }
@@ -449,9 +483,9 @@ namespace EFT_item_checker.ViewModel
 
         public void Dispose()
         {
-            var selectionList = TaskList.Where(Task => Task.IsSelected).Select(task => task.Id).ToList();
+            Document.Instance.Selections = TaskList.Where(Task => Task.IsSelected).Select(task => task.Id).ToList();
 
-            TaskManager.Instance.SaveSelections(selectionList);
+            Document.Instance.Dispose();
         }
     }
 }

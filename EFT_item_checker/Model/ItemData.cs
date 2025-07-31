@@ -99,4 +99,18 @@ namespace EFT_item_checker.Model
         Station,
     }
 
+    public enum SettingType
+    {
+        //언어 설정
+        Language,
+
+    }
+
+    public enum LanguageType
+    {
+        en,
+        ko,
+        ru,
+    }
+
 }

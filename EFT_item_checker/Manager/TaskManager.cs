@@ -25,11 +25,8 @@ namespace EFT_item_checker.Service
         public List<Task> AllQuests { get; private set; } = new List<Model.Task>();
         public List<Task> AllStations { get; private set; } = new List<Task>();
 
-        JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        };
-        
+        JsonSerializerOptions _jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+
         private bool _isLoadedQuests = false;
         private bool _isLoadedItems = false;
         private bool _isLoadedStations = false;
@@ -38,16 +35,15 @@ namespace EFT_item_checker.Service
 
         private TaskManager()
         {
-
+            
         }
+        
 
-        public void Init()
+        public void GetTarkovDevRequests()
         {
             LoadAllItems();
             LoadQuests();
             LoadStations();
-
-            LoadSelections();
         }
 
         private void LoadStations()
@@ -92,7 +88,7 @@ namespace EFT_item_checker.Service
                         var stationData = new Model.Task
                         {
                             Id = level.Id,
-                            Name = station.Name + " " + level.Level,
+                            Name = "🔨 " + station.Name + " " + level.Level,
                             Type = TaskType.Station,
                             RequiredItems = new List<RequiredItem>()
                         };
@@ -179,7 +175,7 @@ namespace EFT_item_checker.Service
                     var taskData = new Task
                     {
                         Id = t.Id,
-                        Name = t.Name,
+                        Name = "📜 " + t.Name,
                         IsKappa = t.KappaRequired,
                         WikiLink = t.WikiLink,
                         Type = TaskType.Quest,
@@ -286,46 +282,6 @@ namespace EFT_item_checker.Service
             }
 
             DataLoaded?.Invoke(this, new EventArgs());
-        }
-
-        public List<string> LoadSelections()
-        {
-            //유저의 진행정보를 불러오기
-            try
-            {
-                string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "selections.json");
-                if (File.Exists(filePath))
-                {
-                    string json = File.ReadAllText(filePath);
-                    var selections = JsonSerializer.Deserialize<List<string>>(json, _jsonOptions);
-
-                    if (selections != null)
-                    {
-                        return selections;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"저장된 정보를 불러오는데 오류가 발생했습니다 : {ex.Message}", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-
-            return new List<string>();
-        }
-
-        public void SaveSelections(List<string> selections)
-        {
-            //유저의 진행정보를 저장하기
-            try
-            {
-                string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "selections.json");
-                string json = JsonSerializer.Serialize(selections, _jsonOptions);
-                File.WriteAllText(filePath, json);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"설정된 정보를 저장하는데 오류가 발생했습니다 : {ex.Message}", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
         }
 
     }
