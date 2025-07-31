@@ -1,0 +1,60 @@
+# 워크플로우 이름
+name: Build and Release Executable
+
+# 워크플로우 실행 조건: master 브랜치에 push될 때
+on:
+  push:
+    branches: [ "master" ]
+
+jobs:
+  build-and-release:
+    # 실행 환경: Windows 최신 버전
+    runs-on: windows-latest
+
+    steps:
+      # 1. 소스 코드 가져오기
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2. .NET SDK 설치 (프로젝트에 맞는 버전으로 수정)
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      # 3. 프로젝트 종속성 복원
+      - name: Restore dependencies
+        run: dotnet restore YourSolutionName.sln
+
+      # 4. 애플리케이션 빌드 및 게시
+      - name: Build and publish
+        run: dotnet publish YourWpfProject/YourWpfProject.csproj --configuration Release --output ./publish --no-restore
+      
+      # 5. 게시된 파일들을 ZIP 파일로 압축
+      - name: Zip the publish folder
+        run: Compress-Archive -Path ./publish/* -DestinationPath YourApplicationName.zip
+      
+      # 6. 새 GitHub Release 생성
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ github.run_number }} # 실행 번호를 태그 이름으로 사용
+          release_name: Release v${{ github.run_number }}
+          body: |
+            Automated release of my WPF application.
+          draft: false
+          prerelease: false
+
+      # 7. 생성된 릴리스에 ZIP 파일(에셋) 업로드
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} 
+          asset_path: ./YourApplicationName.zip
+          asset_name: YourApplicationName-v${{ github.run_number }}.zip
+          asset_content_type: application/zip
