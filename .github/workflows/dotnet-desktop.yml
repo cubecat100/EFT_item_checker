@@ -24,15 +24,15 @@ jobs:
 
       # 3. 프로젝트 종속성 복원
       - name: Restore dependencies
-        run: dotnet restore YourSolutionName.sln
+        run: dotnet restore EFT_item_checker.sln
 
       # 4. 애플리케이션 빌드 및 게시
       - name: Build and publish
-        run: dotnet publish YourWpfProject/YourWpfProject.csproj --configuration Release --output ./publish --no-restore
+        run: dotnet publish EFT_item_checker/EFT_item_checker.csproj --configuration Release --output ./publish --no-restore
       
       # 5. 게시된 파일들을 ZIP 파일로 압축
       - name: Zip the publish folder
-        run: Compress-Archive -Path ./publish/* -DestinationPath YourApplicationName.zip
+        run: Compress-Archive -Path ./publish/* -DestinationPath EFT_item_checker.zip
       
       # 6. 새 GitHub Release 생성
       - name: Create Release
@@ -55,6 +55,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} 
-          asset_path: ./YourApplicationName.zip
-          asset_name: YourApplicationName-v${{ github.run_number }}.zip
+          asset_path: ./EFT_item_checker.zip
+          asset_name: EFT_item_checker-v${{ github.run_number }}.zip
           asset_content_type: application/zip
