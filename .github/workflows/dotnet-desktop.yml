@@ -35,6 +35,12 @@ jobs:
         run: dotnet publish EFT_item_checker/EFT_item_checker.csproj --configuration Release --output ./publish --no-restore
       
       # 5. 게시된 파일들을 ZIP 파일로 압축
+      - name: Move to subfolder for safer zip structure
+        run: |
+          mkdir ./package
+          mkdir ./package/EFT_item_checker
+          xcopy /E /I /Y .\publish\* .\package\EFT_item_checker\
+      
       - name: Zip the publish folder
         run: Compress-Archive -Path ./publish/* -DestinationPath EFT_item_checker.zip
       
