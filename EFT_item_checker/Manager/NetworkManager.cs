@@ -46,7 +46,7 @@ namespace EFT_item_checker.Manager
 
             taskQuery = new Dictionary<string, string>()
             {
-                {"query", "{ tasks (lang : " + lang + ") { id name kappaRequired wikiLink taskRequirements { task { id } } objectives { ... on TaskObjectiveItem { item { id name shortName } count foundInRaid }}}}" }
+                {"query", "{ tasks (lang : " + lang + ") { id name kappaRequired wikiLink trader { id } taskRequirements { task { id } } objectives { ... on TaskObjectiveItem { item { id name shortName } count foundInRaid }}}}" }
             };
 
             stationQuery = new Dictionary<string, string>()

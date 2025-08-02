@@ -22,6 +22,8 @@ namespace EFT_item_checker
         {
             InitializeComponent();
             DataContext = new ViewModel.MainViewModel();
+
+            SetAnimation();
         }
 
         private void Window_Closed(object sender, EventArgs e)
@@ -34,42 +36,90 @@ namespace EFT_item_checker
             }
         }
 
-        private bool isPanelOpen = false;
+        private bool isRightPanelOpen = false;
+        private bool isLeftPanelOpen = false;
 
-        private void OpenPanel_Click(object sender, RoutedEventArgs e)
+        private DoubleAnimation openRightAnim;
+        private DoubleAnimation closeRightAnim;
+
+        private DoubleAnimation openLeftAnim;
+        private DoubleAnimation closeLeftAnim;
+
+        private void SetAnimation()
         {
-            if (!isPanelOpen)
+            openRightAnim = new DoubleAnimation
             {
-                SlidePanel.Visibility = Visibility.Visible;
+                From = 200,
+                To = 0,
+                Duration = TimeSpan.FromMilliseconds(300),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            };
 
-                var openAnim = new DoubleAnimation
-                {
-                    From = 200,
-                    To = 0,
-                    Duration = TimeSpan.FromMilliseconds(300),
-                    EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-                };
+            closeRightAnim = new DoubleAnimation
+            {
+                From = 0,
+                To = 200,
+                Duration = TimeSpan.FromMilliseconds(300),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
+            };
 
-                SlideTransform.BeginAnimation(TranslateTransform.XProperty, openAnim);
-                isPanelOpen = true;
+            openLeftAnim = new DoubleAnimation
+            {
+                From = -200,
+                To = 0,
+                Duration = TimeSpan.FromMilliseconds(300),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            };
+
+            closeLeftAnim = new DoubleAnimation
+            {
+                From = 0,
+                To = -200,
+                Duration = TimeSpan.FromMilliseconds(300),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
+            };
+
+        }
+
+        private void OpenRightPanel_Click(object sender, RoutedEventArgs e)
+        {
+            if (!isRightPanelOpen)
+            {
+                RightSlidePanel.Visibility = Visibility.Visible;
+
+                RightSlideTransform.BeginAnimation(TranslateTransform.XProperty, openRightAnim);
+                isRightPanelOpen = true;
             }
             else
             {
-                var closeAnim = new DoubleAnimation
+                closeRightAnim.Completed += (s, a) =>
                 {
-                    From = 0,
-                    To = 200,
-                    Duration = TimeSpan.FromMilliseconds(300),
-                    EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
+                    RightSlidePanel.Visibility = Visibility.Collapsed;
+                    isRightPanelOpen = false;
                 };
 
-                closeAnim.Completed += (s, a) =>
+                RightSlideTransform.BeginAnimation(TranslateTransform.XProperty, closeRightAnim);
+            }
+        }
+
+        private void OpenLeftPanel_Click(object sender, RoutedEventArgs e)
+        {
+            if (!isLeftPanelOpen)
+            {
+                LeftSlidePanel.Visibility = Visibility.Visible;
+
+                LeftSlideTransform.BeginAnimation(TranslateTransform.XProperty, openLeftAnim);
+                isLeftPanelOpen = true;
+            }
+            else
+            {
+                closeLeftAnim.Completed += (s, a) =>
                 {
-                    SlidePanel.Visibility = Visibility.Collapsed;
-                    isPanelOpen = false;
+                    LeftSlidePanel.Visibility = Visibility.Collapsed;
+                    isLeftPanelOpen = false;
                 };
 
-                SlideTransform.BeginAnimation(TranslateTransform.XProperty, closeAnim);
+                LeftSlideTransform.BeginAnimation(TranslateTransform.XProperty, closeLeftAnim);
             }
         }
     }

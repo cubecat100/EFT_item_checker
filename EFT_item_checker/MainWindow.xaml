@@ -4,10 +4,14 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:EFT_item_checker"
+        xmlns:converters="clr-namespace:EFT_item_checker.Model"
         mc:Ignorable="d"
         
         Closed="Window_Closed"
-        Title="MainWindow" Height="450" MinHeight="450" Width="800" MinWidth="800">
+        Title="EFT_item_checker" Height="450" MinHeight="450" Width="850" MinWidth="850">
+    <Window.Resources>
+        <converters:TextLengthToVisibilityConverter x:Key="TextLengthToVisibilityConverter"/>
+    </Window.Resources>
     <Grid Background="Gray">
         <Grid.RowDefinitions>
             <RowDefinition Height="1*"/>
@@ -20,51 +24,49 @@
                 <ColumnDefinition Width="6*"/>
             </Grid.ColumnDefinitions>
 
-
-
             <Grid Grid.Column="0" Background="White" Margin="2">
                 <Grid>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="25"/>
-                        <RowDefinition Height="85"/>
+                        <RowDefinition Height="35"/>
+                        <RowDefinition Height="20"/>
                         <RowDefinition Height="30*"/>
+                        <RowDefinition Height="35"/>
                     </Grid.RowDefinitions>
-
-
 
                     <TextBlock Grid.Row="0" Text="퀘스트/모듈 목록" HorizontalAlignment="Center" VerticalAlignment="Center" />
 
-                    <Grid Grid.Row="1" Margin="5">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="1*"/>
-                            <ColumnDefinition Width="1*"/>
-                            <ColumnDefinition Width="1*"/>
-                            <ColumnDefinition Width="1*"/>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="1*"/>
-                            <RowDefinition Height="1*"/>
-                            <RowDefinition Height="1*"/>
-                        </Grid.RowDefinitions>
-
-                        <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" VerticalAlignment="Center" IsEnabled="{Binding ControlEnabled}">
-                            <CheckBox Content="퀘스트" IsChecked="{Binding IsQuestsVisible}"/>
-                        </TextBlock>
-                        <TextBlock Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="2" VerticalAlignment="Center" IsEnabled="{Binding ControlEnabled, Mode=TwoWay}">
-                            <CheckBox Content="은신처 모듈" IsChecked="{Binding IsStationsVisible}"/>
-                        </TextBlock>
-
-                        <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" IsEnabled="{Binding ControlEnabled}">
-                            <CheckBox Content="필수" IsChecked="{Binding IsKappaQuestsVisible}"/>
-                        </TextBlock>
-                        <TextBlock Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" IsEnabled="{Binding ControlEnabled}">
-                            <CheckBox Content="선택" IsChecked="{Binding IsSelectableQuestsVisible}"/>
-                        </TextBlock>
-
-                        <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Center" Text="검색 :"/>
-                        <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="4" VerticalAlignment="Center" Margin="0,0,10,0"
-                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding ControlEnabled}"/>
-
+                    <Grid Grid.Row="1">
+                        <ComboBox ItemsSource="{Binding SortList}" SelectedItem="{Binding SortElement}" IsEnabled="{Binding ControlEnabled}">
+                            
+                        </ComboBox>
+                    </Grid>
+                    
+                    <Grid Grid.Row="3" Margin="0">
+                        <TextBox x:Name="SearchTextBox"
+                                 Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="4" VerticalAlignment="Center" Margin="10,0,10,0" 
+                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding ControlEnabled}">
+                            <TextBox.Resources>
+                                <Style TargetType="TextBox">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="TextBox">
+                                                <Grid>
+                                                    <Border Background="{TemplateBinding Background}"
+                                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                                        CornerRadius="3">
+                                                    </Border>
+                                                    <ScrollViewer Margin="2" x:Name="PART_ContentHost"/>
+                                                    <TextBlock Text=" 검색" x:Name="PlaceholderText" IsHitTestVisible="False" Foreground="Gray" 
+                                                       VerticalAlignment="Center" HorizontalAlignment="Left" Padding="4,0,0,0"
+                                                       Visibility="{Binding ElementName=SearchTextBox, Path=Text.Length, Converter={StaticResource TextLengthToVisibilityConverter}}"/>
+                                                </Grid>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </TextBox.Resources>
+                        </TextBox>
                     </Grid>
 
                     <Grid Grid.Row="2">
@@ -94,18 +96,13 @@
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>
-
                     </Grid>
-
                 </Grid>
-
             </Grid>
-
-
 
             <Grid Grid.Column="1" Background="White" Margin="2">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="25"/>
+                    <RowDefinition Height="35"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
@@ -168,12 +165,12 @@
         </Grid>
 
         <!-- 슬라이드 패널 -->
-        <Grid x:Name="SlidePanel" Width="200" Height="Auto"
+        <Grid x:Name="RightSlidePanel" Width="200" Height="Auto"
               Background="LightSlateGray"
               HorizontalAlignment="Right" VerticalAlignment="Stretch"
               Visibility="Collapsed" RenderTransformOrigin="0.0,0.0" Panel.ZIndex="100">
             <Grid.RenderTransform>
-                <TranslateTransform x:Name="SlideTransform" X="200"/>
+                <TranslateTransform x:Name="RightSlideTransform" X="200"/>
             </Grid.RenderTransform>
 
             <Grid.RowDefinitions>
@@ -183,15 +180,114 @@
 
             <ScrollViewer Grid.Row="1">
                 <StackPanel >
-                    <Button Content="설정 초기화" Margin="10"/>
-                    <TextBlock Text="언어" HorizontalAlignment="Center" Margin="0,0,0,5"/>
+                    <Button Content="Reset" Margin="10" Command="{Binding ResetCommand}"/>
+                    <TextBlock Text="Language" HorizontalAlignment="Center" Margin="0,0,0,5"/>
                     <ComboBox ItemsSource="{Binding LanguageList}" SelectedItem="{Binding SelectedLanguage}" Margin="10,0,10,0"/>
                 </StackPanel>
             </ScrollViewer>
         </Grid>
 
-        <!-- 열기 버튼 (오른쪽 상단에 고정) -->
+        <Grid x:Name="LeftSlidePanel" Width="200" Height="Auto"
+              Background="LightSlateGray"
+              HorizontalAlignment="Left" VerticalAlignment="Stretch"
+              Visibility="Collapsed" RenderTransformOrigin="0.0,0.0" Panel.ZIndex="100">
+            <Grid.RenderTransform>
+                <TranslateTransform x:Name="LeftSlideTransform" X="-200"/>
+            </Grid.RenderTransform>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="35"/>
+                <RowDefinition Height="1*"/>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="1" Margin="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="1*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="23"/>
+                    <RowDefinition Height="23"/>
+                    <RowDefinition Height="23"/>
+                    <RowDefinition Height="23"/>
+                    
+                    <RowDefinition Height="23"/>
+                    <RowDefinition Height="23"/>
+                    <RowDefinition Height="23"/>
+                    <RowDefinition Height="23"/>
+                    <RowDefinition Height="23"/>
+                    <RowDefinition Height="23"/>
+                    <RowDefinition Height="23"/>
+                    <RowDefinition Height="23"/>
+                    <RowDefinition Height="23"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Text="구분" Margin="0,5,0,0"/>
+
+                <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center">
+                    <CheckBox Content="퀘스트" IsChecked="{Binding IsQuestsVisible}"/>
+                </TextBlock>
+                <TextBlock Grid.Row="1" Grid.Column="1" VerticalAlignment="Center">
+                    <CheckBox Content="은신처 모듈" IsChecked="{Binding IsStationsVisible}"/>
+                </TextBlock>
+
+                <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center">
+                    <TextBlock Text="ㄴ"/>
+                    <CheckBox Content="필수" IsChecked="{Binding IsKappaQuestsVisible}"/>
+                </TextBlock>
+                <TextBlock Grid.Row="3" Grid.Column="0" VerticalAlignment="Center">
+                    <TextBlock Text="ㄴ"/>
+                    <CheckBox Content="선택" IsChecked="{Binding IsSelectableQuestsVisible}"/>
+                </TextBlock>
+
+
+                <TextBlock Grid.Row="4" Text="상인" Margin="0,5,0,0"/>
+                
+                <TextBlock Grid.Row="5" Grid.Column="0" VerticalAlignment="Center">
+                    <CheckBox Content="프라퍼" IsChecked="{Binding IsPraporVisible}"/>
+                </TextBlock>
+                <TextBlock Grid.Row="6" Grid.Column="0" VerticalAlignment="Center">
+                    <CheckBox Content="테라피스트" IsChecked="{Binding IsTherapistVisible}"/>
+                </TextBlock>
+
+                <TextBlock Grid.Row="7" Grid.Column="0" VerticalAlignment="Center">
+                    <CheckBox Content="펜스" IsChecked="{Binding IsFenceVisible}"/>
+                </TextBlock>
+                <TextBlock Grid.Row="8" Grid.Column="0" VerticalAlignment="Center">
+                    <CheckBox Content="스키어" IsChecked="{Binding IsSkierVisible}"/>
+                </TextBlock>
+                <TextBlock Grid.Row="9" Grid.Column="0" VerticalAlignment="Center">
+                    <CheckBox Content="피스키퍼" IsChecked="{Binding IsPeacekeeperVisible}"/>
+                </TextBlock>
+                <TextBlock Grid.Row="10" Grid.Column="0" VerticalAlignment="Center">
+                    <CheckBox Content="메카닉" IsChecked="{Binding IsMechanicVisible}"/>
+                </TextBlock>
+
+                <TextBlock Grid.Row="11" Grid.Column="0" VerticalAlignment="Center">
+                    <CheckBox Content="래그맨" IsChecked="{Binding IsRagmanVisible}"/>
+                </TextBlock>
+                <TextBlock Grid.Row="12" Grid.Column="0" VerticalAlignment="Center">
+                    <CheckBox Content="예거" IsChecked="{Binding IsJaegerVisible}"/>
+                </TextBlock>
+
+                <TextBlock Grid.Row="5" Grid.Column="1" VerticalAlignment="Center">
+                    <CheckBox Content="레프" IsChecked="{Binding IsRefVisible}"/>
+                </TextBlock>
+                <TextBlock Grid.Row="6" Grid.Column="2" VerticalAlignment="Center">
+                    <CheckBox Content="BTR" IsChecked="{Binding IsBtrVisible}"/>
+                </TextBlock>
+                <TextBlock Grid.Row="7" Grid.Column="3" VerticalAlignment="Center">
+                    <CheckBox Content="등대지기" IsChecked="{Binding IsLightkeeperVisible}"/>
+                </TextBlock>
+
+            </Grid>
+        </Grid>
+
+        <!-- 설정 버튼 (오른쪽 상단) -->
         <Button Content="≡" Width="30" Height="30" Margin="5" Panel.ZIndex="150" IsEnabled="{Binding ControlEnabled}"
-                HorizontalAlignment="Right" VerticalAlignment="Top" Click="OpenPanel_Click"/>
+                HorizontalAlignment="Right" VerticalAlignment="Top" Click="OpenRightPanel_Click"/>
+
+        <!-- 필터링 버튼 (왼쪽 상단) -->
+        <Button Content="≡" Width="30" Height="30" Margin="5" Panel.ZIndex="150" IsEnabled="{Binding ControlEnabled}"
+                HorizontalAlignment="Left" VerticalAlignment="Top" Click="OpenLeftPanel_Click"/>
     </Grid>
 </Window>

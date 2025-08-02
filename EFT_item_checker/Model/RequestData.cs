@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace EFT_item_checker.Model
@@ -45,8 +46,15 @@ namespace EFT_item_checker.Model
         public string Name { get; set; }
         public bool KappaRequired { get; set; }
         public string WikiLink { get; set; }
+        
         public List<Objectives> Objectives { get; set; } // 아이템 목록
         public List<RequiredQuest> TaskRequirements { get; set; } // 선행 퀘스트 ID 목록
+        public RequestTraderData Trader { get; set; }
+    }
+
+    public class RequestTraderData
+    {
+        public string Id { get; set; }
     }
 
     public class RequiredQuest

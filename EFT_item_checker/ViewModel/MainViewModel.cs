@@ -20,14 +20,15 @@ namespace EFT_item_checker.ViewModel
         {
             get
             {
-                // TaskList에서 IsVisibility가 Visible인 항목만 필터링 후 정렬하여 반환
-                return new ObservableCollection<Model.Task>(
-                    TaskList
-                        .Where(task => task.IsVisibility == Visibility.Visible)
-                        .Where(task => string.IsNullOrEmpty(SearchText) || task.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase))
-                );
+                var tasks = TaskList
+                    .Where(task => task.IsVisibility == Visibility.Visible)
+                    .Where(task => string.IsNullOrEmpty(SearchText) || task.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
+
+                return sortTasks(tasks);
             }
         }
+
+        
 
         private string _searchText = string.Empty;
         public string SearchText 
@@ -120,8 +121,7 @@ namespace EFT_item_checker.ViewModel
                 {
                     _isStationsVisible = value;
 
-                    UpdateVisible();
-
+                    UpdateTaskVisibility();
                     OnPropertyChanged(nameof(IsStationsVisible));
                 }
             }
@@ -138,8 +138,9 @@ namespace EFT_item_checker.ViewModel
 
                     _isKappaQuestsVisible = value;
                     _isSelectableQuestsVisible = value;
-                    
-                    UpdateQuestVisibleProperty(value);
+
+                    UpdateTaskVisibility();
+                    OnPropertyChanged(nameof(IsQuestsVisible));
                 }
             }
         }
@@ -158,7 +159,8 @@ namespace EFT_item_checker.ViewModel
                         _isQuestsVisible = false;
                     }
 
-                    UpdateQuestVisibleProperty(value);
+                    UpdateTaskVisibility();
+                    OnPropertyChanged(nameof(IsKappaQuestsVisible));
                 }
             }
         }
@@ -177,63 +179,286 @@ namespace EFT_item_checker.ViewModel
                         _isQuestsVisible = false;
                     }
 
-                    UpdateQuestVisibleProperty(value);
+                    UpdateTaskVisibility();
+                    OnPropertyChanged(nameof(IsSelectableQuestsVisible));
+                }
+            }
+        }
+
+       
+
+        private bool _isPraporVisible = true;
+        public bool IsPraporVisible
+        {
+            get => _isPraporVisible;
+            set
+            {
+                if( _isPraporVisible != value)
+                {
+                    _isPraporVisible = value;
+
+                    UpdateTaskVisibility();
+                    OnPropertyChanged(nameof(IsPraporVisible));
+                }
+            }
+        }
+
+        private bool _isTherapistVisible = true;
+        public bool IsTherapistVisible
+        {
+            get => _isTherapistVisible;
+            set
+            {
+                if (_isTherapistVisible != value)
+                {
+                    _isTherapistVisible = value;
+                    UpdateTaskVisibility();
+                    OnPropertyChanged(nameof(IsTherapistVisible));
+                }
+            }
+        }
+
+        private bool _isFenceVisible = true;
+        public bool IsFenceVisible
+        {
+            get => _isFenceVisible;
+            set
+            {
+                if (_isFenceVisible != value)
+                {
+                    _isFenceVisible = value;
+                    UpdateTaskVisibility();
+                    OnPropertyChanged(nameof(IsFenceVisible));
+                }
+            }
+        }
+
+        private bool _isSkierVisible = true;
+        public bool IsSkierVisible
+        {
+            get => _isSkierVisible;
+            set
+            {
+                if (_isSkierVisible != value)
+                {
+                    _isSkierVisible = value;
+                    UpdateTaskVisibility();
+                    OnPropertyChanged(nameof(IsSkierVisible));
+                }
+            }
+        }
+
+        private bool _isPeacekeeperVisible = true;
+        public bool IsPeacekeeperVisible
+        {
+            get => _isPeacekeeperVisible;
+            set
+            {
+                if (_isPeacekeeperVisible != value)
+                {
+                    _isPeacekeeperVisible = value;
+                    UpdateTaskVisibility();
+                    OnPropertyChanged(nameof(IsPeacekeeperVisible));
+                }
+            }
+        }
+
+        private bool _isMechanicVisible = true;
+        public bool IsMechanicVisible
+        {
+            get => _isMechanicVisible;
+            set
+            {
+                if (_isMechanicVisible != value)
+                {
+                    _isMechanicVisible = value;
+                    UpdateTaskVisibility();
+                    OnPropertyChanged(nameof(IsMechanicVisible));
+                }
+            }
+        }
+
+        private bool _isRagmanVisible = true;
+        public bool IsRagmanVisible
+        {
+            get => _isRagmanVisible;
+            set
+            {
+                if (_isRagmanVisible != value)
+                {
+                    _isRagmanVisible = value;
+                    UpdateTaskVisibility();
+                    OnPropertyChanged(nameof(IsRagmanVisible));
+                }
+            }
+        }
+
+        private bool _isJaegerVisible = true;
+        public bool IsJaegerVisible
+        {
+            get => _isJaegerVisible;
+            set
+            {
+                if (_isJaegerVisible != value)
+                {
+                    _isJaegerVisible = value;
+                    UpdateTaskVisibility();
+                    OnPropertyChanged(nameof(IsJaegerVisible));
+                }
+            }
+        }
+
+        private bool _isLightkeeperVisible = true;
+        public bool IsLightkeeperVisible
+        {
+            get => _isLightkeeperVisible;
+            set
+            {
+                if (_isLightkeeperVisible != value)
+                {
+                    _isLightkeeperVisible = value;
+                    UpdateTaskVisibility();
+                    OnPropertyChanged(nameof(IsLightkeeperVisible));
+                }
+            }
+        }
+
+        private bool _isRefVisible = true;
+        public bool IsRefVisible
+        {
+            get => _isRefVisible;
+            set
+            {
+                if (_isRefVisible != value)
+                {
+                    _isRefVisible = value;
+                    UpdateTaskVisibility();
+                    OnPropertyChanged(nameof(IsRefVisible));
+                }
+            }
+        }
+
+        private bool _isBtrVisible = true;
+        public bool IsBtrVisible
+        {
+            get => _isBtrVisible;
+            set
+            {
+                if (_isBtrVisible != value)
+                {
+                    _isBtrVisible = value;
+
+                    UpdateTaskVisibility();
+                    OnPropertyChanged(nameof(IsBtrVisible));
+                }
+            }
+        }
+
+        public List<SortType> SortList => Enum.GetValues<SortType>().ToList();
+
+        private bool _isReverseSort = false;
+        private SortType _sortType = SortType.Name;
+        public SortType SortElement
+        {
+            get => _sortType;
+            set
+            {
+                if (_sortType != value)
+                {
+                    _sortType = value;
+                    
+                    OnPropertyChanged(nameof(VisibleTaskList));
+                }
+                else
+                {
+                    //동일한 SortType이 선택되면 역순으로 정렬
+                    _isReverseSort = !_isReverseSort;
                 }
             }
         }
 
         #endregion
 
-        private void UpdateQuestVisibleProperty(bool value)
+        private void UpdateTaskVisibility()
         {
-            UpdateVisible();
-
-            OnPropertyChanged(nameof(IsQuestsVisible));
-            OnPropertyChanged(nameof(IsSelectableQuestsVisible));
-            OnPropertyChanged(nameof(IsKappaQuestsVisible));
-
-            UpdateItemLists();
-        }
-
-        private void UpdateVisible()
-        {
-            // TaskType에 따라 IsVisible 속성을 업데이트합니다.
             foreach (var task in TaskList)
             {
                 if (task.Type == TaskType.Station)
                 {
-                    if (_isStationsVisible == true)
-                    {
-                        task.IsVisibility = Visibility.Visible;
-                    }
-                    else
-                    {
-                        task.IsVisibility = Visibility.Collapsed;
-                    }
+                    task.IsVisibility = _isStationsVisible ? Visibility.Visible : Visibility.Collapsed;
                 }
-                else if(task.Type == TaskType.Quest)
+                else if (task.Type == TaskType.Quest)
                 {
-                    if (_isQuestsVisible == true)
+                    // 트레이더별 표시 여부
+                    bool traderVisible = task.Trader switch
                     {
-                        task.IsVisibility = Visibility.Visible;
-                    }
-                    else if (_isKappaQuestsVisible == true && task.IsKappa == true)
+                        TraderType.Prapor => _isPraporVisible,
+                        TraderType.Therapist => _isTherapistVisible,
+                        TraderType.Fence => _isFenceVisible,
+                        TraderType.Skier => _isSkierVisible,
+                        TraderType.Peacekeeper => _isPeacekeeperVisible,
+                        TraderType.Mechanic => _isMechanicVisible,
+                        TraderType.Ragman => _isRagmanVisible,
+                        TraderType.Jaeger => _isJaegerVisible,
+                        TraderType.LightKeeper => _isLightkeeperVisible,
+                        TraderType.Ref => _isRefVisible,
+                        TraderType.Btr => _isBtrVisible,
+                        _ => true
+                    };
+
+                    if (traderVisible == false)
                     {
-                        task.IsVisibility = Visibility.Visible;
-                    }
-                    else if (_isSelectableQuestsVisible == true && task.IsKappa == false)
-                    {
-                        task.IsVisibility = Visibility.Visible;
+                        task.IsVisibility = Visibility.Collapsed;
                     }
                     else
                     {
-                        task.IsVisibility = Visibility.Collapsed;
+                        if (_isQuestsVisible == true)
+                        {
+                            task.IsVisibility = Visibility.Visible;
+                        }
+                        else if (_isKappaQuestsVisible == true && task.IsKappa == true)
+                        {
+                            task.IsVisibility = Visibility.Visible;
+                        }
+                        else if (_isSelectableQuestsVisible == true && task.IsKappa == false)
+                        {
+                            task.IsVisibility = Visibility.Visible;
+                        }
+                        else
+                        {
+                            task.IsVisibility = Visibility.Collapsed;
+                        }
                     }
                 }
             }
         }
 
-        
+        private ObservableCollection<Model.Task> sortTasks(IEnumerable<Model.Task> tasks)
+        {
+            ObservableCollection<Model.Task> sortedTasks;
+
+            switch (SortElement)
+            {
+                case SortType.Name:
+                    sortedTasks = new ObservableCollection<Model.Task>(_isReverseSort ? tasks.OrderBy(task => task.Name) : tasks.OrderByDescending(task => task.Name));
+                    break;
+                case SortType.Trader:
+                    sortedTasks = new ObservableCollection<Model.Task>(_isReverseSort ? tasks.OrderBy(task => task.Trader.ToString()) : tasks.OrderByDescending(task => task.Trader.ToString()));
+                    break;
+                case SortType.Type:
+                    sortedTasks = new ObservableCollection<Model.Task>(_isReverseSort ? tasks.OrderBy(task => task.Type.ToString()) : tasks.OrderByDescending(task => task.Type.ToString()));
+                    break;
+                case SortType.Completed:
+                    sortedTasks = new ObservableCollection<Model.Task>(_isReverseSort ? tasks.OrderBy(task => task.IsSelected) : tasks.OrderByDescending(task => task.IsSelected));
+                    break;
+
+                default:
+                    sortedTasks = new ObservableCollection<Model.Task>(tasks);
+                    break;
+            }
+
+            return sortedTasks;
+        }
 
         public MainViewModel()
         {
@@ -273,6 +498,8 @@ namespace EFT_item_checker.ViewModel
 
             IsQuestsVisible = true;
             IsStationsVisible = true;
+
+            Document.Instance.Reset();
         }
 
         private void ExecuteOpenLink(object obj)

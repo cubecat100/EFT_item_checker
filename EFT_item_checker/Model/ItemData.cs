@@ -55,6 +55,8 @@ namespace EFT_item_checker.Model
 
         public bool IsKappa { get; set; } // Kappa 퀘스트 여부
 
+        public TraderType Trader { get; set; } // 퀘스트를 주는 트레이더 이름
+
         public List<string> RequiredTasks { get; set; } = new List<string>(); // 선행 Task ID 목록
 
         public List<RequiredItem> RequiredItems { get; set; } = new List<RequiredItem>();
@@ -92,6 +94,14 @@ namespace EFT_item_checker.Model
         }
     }
 
+    public enum SortType
+    {
+        Name, // 이름 오름차순
+        Trader, // 트레이더 내림차순
+        Type, // 타입 내림차순
+        Completed, // 완료 여부 내림차순
+    }
+
     public enum TaskType
     {
         Item,
@@ -113,4 +123,21 @@ namespace EFT_item_checker.Model
         ru,
     }
 
+    public enum TraderType
+    {
+        // 트레이더 이름
+        Prapor,
+        Therapist,
+        Fence,
+        Skier,
+        Peacekeeper,
+        Mechanic,
+        Ragman,
+        Jaeger,
+        LightKeeper,
+        Btr,
+        Ref,
+
+        Unknown,
+    }
 }

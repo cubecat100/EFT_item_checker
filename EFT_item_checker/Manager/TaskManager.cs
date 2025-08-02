@@ -179,6 +179,7 @@ namespace EFT_item_checker.Service
                         IsKappa = t.KappaRequired,
                         WikiLink = t.WikiLink,
                         Type = TaskType.Quest,
+                        Trader = Document.Instance.GetTraderById(t.Trader?.Id),
                     };
 
                     foreach (var obj in t.Objectives)
@@ -284,6 +285,7 @@ namespace EFT_item_checker.Service
             DataLoaded?.Invoke(this, new EventArgs());
         }
 
+        
     }
 
 }

@@ -137,5 +137,32 @@ namespace EFT_item_checker
             SaveSettings();
             SaveSelections();
         }
+
+        internal void Reset()
+        {
+            DefaultSettings();
+        }
+
+        public TraderType GetTraderById(string? id)
+        {
+            return id switch
+            {
+                "54cb50c76803fa8b248b4571" => TraderType.Prapor,
+                "54cb57776803fa99248b456e" => TraderType.Therapist,
+                "579dc571d53a0658a154fbec" => TraderType.Fence,
+                "58330581ace78e27b8b10cee" => TraderType.Skier,
+
+                "5935c25fb3acc3127c3d8cd9" => TraderType.Peacekeeper,
+                "5a7c2eca46aef81a7ca2145d" => TraderType.Mechanic,
+                "5ac3b934156ae10c4430e83c" => TraderType.Ragman,
+                "5c0647fdd443bc2504c2d371" => TraderType.Jaeger,
+
+                "638f541a29ffd1183d187f57" => TraderType.LightKeeper,
+                "656f0f98d80a697f855d34b1" => TraderType.Btr,
+                "6617beeaa9cfa777ca915b7c" => TraderType.Ref,
+
+                _ => TraderType.Unknown
+            };
+        }
     }
 }
