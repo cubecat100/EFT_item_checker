@@ -5,6 +5,8 @@ name: Build and Release Executable
 on:
   push:
     branches: [ "master" ]
+    paths-ignore:
+      - 'README.md'
 
 # 권한 설정
 permissions:
