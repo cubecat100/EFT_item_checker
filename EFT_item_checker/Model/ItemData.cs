@@ -35,12 +35,41 @@ namespace EFT_item_checker.Model
                 }
             }
         }
+
+        public string WikiLink { get; internal set; }
     }
 
     public class RequiredItem
     {
         public Item Item { get; set; } // 필요한 아이템 객체
-        public int Quantity { get; set; } // 필요한 수량
+        public int Required { get; set; } // 필요한 수량
+
+        private int _quantity;
+        public int Quantity //수집 수량
+        {
+            get => _quantity;
+            set
+            {
+                // TextBox에서 값이 비어있거나 null일 때 0으로 처리
+                if (value == null)
+                {
+                    _quantity = 0;
+                }
+                else if (value < 0)
+                {
+                    _quantity = 0; // 수량이 음수가 되지 않도록 보장
+                }
+                else if (value > Required)
+                {
+                    _quantity = Required;
+                }
+                else
+                {
+                    _quantity = value;
+                }
+            }
+        }
+
         public bool FoundInRaid { get; set; } // 레이드에서 찾아야 하는지 여부
     }
 
@@ -113,6 +142,7 @@ namespace EFT_item_checker.Model
     {
         //언어 설정
         Language,
+        TaskSort,
 
     }
 
@@ -139,5 +169,12 @@ namespace EFT_item_checker.Model
         Ref,
 
         Unknown,
+    }
+
+    public enum ItemSortType
+    {
+        Name,
+        Category,
+        Collection_Rate,
     }
 }

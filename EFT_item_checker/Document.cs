@@ -20,10 +20,13 @@ namespace EFT_item_checker
 
         public List<string> Selections { get; set; } = new List<string>();
 
+        public Dictionary<string, int> collects = new Dictionary<string, int>();
+
         private JsonSerializerOptions _jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
         private string _settingsFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "settings.json");
         private string _selectionsFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "selections.json");
+        private string _itemCollectFilepath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "collects.json");
 
         private Document()
         {
@@ -34,11 +37,48 @@ namespace EFT_item_checker
         {
             LoadSettings();
             LoadSelections();
+
+            LoadItemCollects();
         }
 
+        // 아이템 수집 수량 가져오기
+        private void LoadItemCollects()
+        {
+            try
+            {
+                if(File.Exists(_itemCollectFilepath))
+                {
+                    string json = File.ReadAllText(_itemCollectFilepath);
+                    var loadedCollects = JsonSerializer.Deserialize<Dictionary<string, int>>(json, _jsonOptions);
+
+                    if (loadedCollects != null)
+                    {
+                        collects = loadedCollects;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"아이템 수집 정보를 불러오는 중 오류가 발생했습니다: {ex.Message}", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void SaveItemCollects()
+        {
+            try
+            {
+                string json = JsonSerializer.Serialize(collects, _jsonOptions);
+                File.WriteAllText(_itemCollectFilepath, json);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"수집 정보를 저장하는 중 오류가 발생했습니다: {ex.Message}", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        // 유저의 설정 정보 가져오기 및 초기값 설정
         private void LoadSettings()
         {
-            //유저의 설정정보를 불러오기
             try
             {
                 if (File.Exists(_settingsFilePath))
@@ -46,9 +86,10 @@ namespace EFT_item_checker
                     string json = File.ReadAllText(_settingsFilePath);
                     var settings = JsonSerializer.Deserialize<Dictionary<SettingType, string>>(json, _jsonOptions);
 
-                    if (settings == null)
+                    // 설정이 null이거나 설정 목록의 개수가 맞지 않으면 기본값 설정
+                    if (settings == null || settings.Count != Enum.GetValues<SettingType>().Length)
                     {
-                        DefaultSettings();
+                        SetDefaultSettings();
                     }
                     else
                     {
@@ -58,28 +99,27 @@ namespace EFT_item_checker
                 else
                 {
                     // 설정 파일이 없으면 기본값을 생성하거나 초기화
-                    DefaultSettings();
+                    SetDefaultSettings();
                 }
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"설정 정보를 불러오는 중 오류가 발생했습니다: {ex.Message}", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
-                DefaultSettings();
+                SetDefaultSettings();
             }
         }
 
-        private void DefaultSettings()
+        // 기본 설정값을 정의 및 저장
+        private void SetDefaultSettings()
         {
-            // 기본 설정값을 정의
             Settings[SettingType.Language] = LanguageType.en.ToString();
+            Settings[SettingType.TaskSort] = SortType.Completed.ToString();
 
-            // 설정 저장
             SaveSettings();
         }
 
         private void SaveSettings()
         {
-            // 설정 저장 로직이 필요하다면 여기에 구현
             try
             {
                 string json = JsonSerializer.Serialize(Settings, _jsonOptions);
@@ -91,9 +131,9 @@ namespace EFT_item_checker
             }
         }
 
+        //유저의 진행 정보를 불러오기
         public void LoadSelections()
         {
-            //유저의 진행정보를 불러오기
             try
             {
                 if (File.Exists(_selectionsFilePath))
@@ -136,11 +176,12 @@ namespace EFT_item_checker
         {
             SaveSettings();
             SaveSelections();
+            SaveItemCollects();
         }
 
         internal void Reset()
         {
-            DefaultSettings();
+            SetDefaultSettings();
         }
 
         public TraderType GetTraderById(string? id)

@@ -27,6 +27,7 @@ namespace EFT_item_checker.Model
 
         public string IconLink { get; set; } = "";
         public DateTime Updated { get; set; } // 업데이트 날짜
+        public string WikiLink { get; set; }
     }
 
     public class RequestTaskData

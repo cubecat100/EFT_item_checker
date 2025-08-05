@@ -41,7 +41,7 @@ namespace EFT_item_checker.Manager
 
             itemQuery = new Dictionary<string, string>()
             {
-                {"query", "{ items (lang : " + lang + ") { id name shortName iconLink updated }}" }
+                {"query", "{ items (lang : " + lang + ") { id name shortName iconLink wikiLink }}" }
             };
 
             taskQuery = new Dictionary<string, string>()

@@ -3,6 +3,7 @@ using EFT_item_checker.Service;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Security.Policy;
 using System.Threading.Tasks;
 using System.Windows;
@@ -14,7 +15,9 @@ namespace EFT_item_checker.ViewModel
     {
         #region PROPERTY
 
-        public ObservableCollection<Model.Task> TaskList { get; set; } = new ObservableCollection<Model.Task>();
+        public Dictionary<string, Item> ValidItems { get; set; } = new();
+
+        public ObservableCollection<Model.Task> TaskList { get; set; } = new();
 
         public ObservableCollection<Model.Task> VisibleTaskList
         {
@@ -28,7 +31,7 @@ namespace EFT_item_checker.ViewModel
             }
         }
 
-        
+        private Dictionary<string, int> _allItemQuantities = new();
 
         private string _searchText = string.Empty;
         public string SearchText 
@@ -39,6 +42,35 @@ namespace EFT_item_checker.ViewModel
                 _searchText = value;
 
                 OnPropertyChanged(nameof(VisibleTaskList));
+            }
+        }
+
+        private string _searchItemText = string.Empty;
+
+        public string SearchItemText
+        {
+            get => _searchItemText;
+            set
+            {
+                _searchItemText = value;
+                UpdateItemLists();
+                OnPropertyChanged(nameof(FilteredItems));
+            }
+        }
+
+        
+
+        public List<ItemSortType> ItemSortList { get; } = Enum.GetValues<ItemSortType>().ToList();
+
+        private ItemSortType _itemSortElement = ItemSortType.Name;
+        public ItemSortType ItemSortElement
+        {
+            get => _itemSortElement;
+            set
+            {
+                _itemSortElement = value;
+
+                UpdateItemLists();
             }
         }
 
@@ -60,16 +92,27 @@ namespace EFT_item_checker.ViewModel
             }
         }
 
-        public ObservableCollection<RequiredItem> FilteredItems { get; set; } = new ObservableCollection<RequiredItem>();
+        private ObservableCollection<RequiredItem> _filteredItems = new ObservableCollection<RequiredItem>();
+        public ObservableCollection<RequiredItem> FilteredItems { 
+            get => _filteredItems;
+            set
+            {
+                _filteredItems = value;
+
+                OnPropertyChanged(nameof(FilteredItems));
+            }
+        }
 
         public ICommand ToggleSelectCommand { get; }
         public ICommand OpenLinkCommand { get; }
         public ICommand ResetCommand { get; }
+        public ICommand ItemClickCommand { get; }
 
         private string WikiUrl = "https://escapefromtarkov.fandom.com";
         private string HideoutWikiUrl = "https://escapefromtarkov.fandom.com/wiki/Hideout";
 
         public string Description { get; set; } = "escapefromtarkov wiki";
+        private string _linkUrl;
 
         private Model.Task _task;
         public Model.Task SelectedTask { 
@@ -83,23 +126,7 @@ namespace EFT_item_checker.ViewModel
             }
         }
 
-        private void DescriptionUpdate()
-        {
-            if (_task == null)
-            {
-                Description = WikiUrl;
-            }
-            else if (_task.Type == TaskType.Quest)
-            {
-                Description = _task?.WikiLink ?? WikiUrl;
-            }
-            else if (_task.Type == TaskType.Station)
-            {
-                Description = HideoutWikiUrl;
-            }
-
-            OnPropertyChanged(nameof(Description));
-        }
+        
 
         public Model.Task SelectedItem { get; set; } = new Model.Task();
 
@@ -356,28 +383,56 @@ namespace EFT_item_checker.ViewModel
 
         public List<SortType> SortList => Enum.GetValues<SortType>().ToList();
 
-        private bool _isReverseSort = false;
-        private SortType _sortType = SortType.Name;
+        private string _sortType = Document.Instance.Settings[SettingType.TaskSort];
         public SortType SortElement
         {
-            get => _sortType;
+            get => Enum.Parse<SortType>(_sortType);
             set
             {
-                if (_sortType != value)
+                if (_sortType != value.ToString())
                 {
-                    _sortType = value;
+                    _sortType = value.ToString();
                     
                     OnPropertyChanged(nameof(VisibleTaskList));
-                }
-                else
-                {
-                    //동일한 SortType이 선택되면 역순으로 정렬
-                    _isReverseSort = !_isReverseSort;
                 }
             }
         }
 
         #endregion
+
+        public MainViewModel()
+        {
+            _linkUrl = WikiUrl;
+
+            // Task의 체크박스 선택 상태가 변경될 때
+            ToggleSelectCommand = new RelayCommand<Model.Task>(OnToggleSelect);
+            OpenLinkCommand = new RelayCommand(ExecuteOpenLink);
+            ResetCommand = new RelayCommand(TaskSelectionReset);
+            ItemClickCommand = new RelayCommand<RequiredItem>(ItemClicked);
+
+            // TaskList의 항목이 추가/제거될 때마다 이벤트 구독/해제
+            TaskList.CollectionChanged += (s, e) =>
+            {
+                if (e.NewItems != null)
+                {
+                    foreach (Model.Task task in e.NewItems)
+                    {
+                        task.PropertyChanged += OnTaskPropertyChanged;
+                    }
+                }
+                if (e.OldItems != null)
+                {
+                    foreach (Model.Task task in e.OldItems)
+                    {
+                        task.PropertyChanged -= OnTaskPropertyChanged;
+                    }
+                }
+            };
+
+            LoadData();
+        }
+
+        
 
         private void UpdateTaskVisibility()
         {
@@ -440,16 +495,16 @@ namespace EFT_item_checker.ViewModel
             switch (SortElement)
             {
                 case SortType.Name:
-                    sortedTasks = new ObservableCollection<Model.Task>(_isReverseSort ? tasks.OrderBy(task => task.Name) : tasks.OrderByDescending(task => task.Name));
+                    sortedTasks = new ObservableCollection<Model.Task>(tasks.OrderBy(task => task.Name));
                     break;
                 case SortType.Trader:
-                    sortedTasks = new ObservableCollection<Model.Task>(_isReverseSort ? tasks.OrderBy(task => task.Trader.ToString()) : tasks.OrderByDescending(task => task.Trader.ToString()));
+                    sortedTasks = new ObservableCollection<Model.Task>(tasks.OrderBy(task => task.Trader));
                     break;
                 case SortType.Type:
-                    sortedTasks = new ObservableCollection<Model.Task>(_isReverseSort ? tasks.OrderBy(task => task.Type.ToString()) : tasks.OrderByDescending(task => task.Type.ToString()));
+                    sortedTasks = new ObservableCollection<Model.Task>(tasks.OrderBy(task => task.Type.ToString()));
                     break;
                 case SortType.Completed:
-                    sortedTasks = new ObservableCollection<Model.Task>(_isReverseSort ? tasks.OrderBy(task => task.IsSelected) : tasks.OrderByDescending(task => task.IsSelected));
+                    sortedTasks = new ObservableCollection<Model.Task>(tasks.OrderBy(task => task.IsSelected));
                     break;
 
                 default:
@@ -458,35 +513,6 @@ namespace EFT_item_checker.ViewModel
             }
 
             return sortedTasks;
-        }
-
-        public MainViewModel()
-        {
-            // Task의 체크박스 선택 상태가 변경될 때
-            ToggleSelectCommand = new RelayCommand<Model.Task>(OnToggleSelect);
-            OpenLinkCommand = new RelayCommand(ExecuteOpenLink);
-            ResetCommand = new RelayCommand(TaskSelectionReset);
-
-            // TaskList의 항목이 추가/제거될 때마다 이벤트 구독/해제
-            TaskList.CollectionChanged += (s, e) =>
-            {
-                if (e.NewItems != null)
-                {
-                    foreach (Model.Task task in e.NewItems)
-                    {
-                        task.PropertyChanged += OnTaskPropertyChanged;
-                    }
-                }
-                if (e.OldItems != null)
-                {
-                    foreach (Model.Task task in e.OldItems)
-                    {
-                        task.PropertyChanged -= OnTaskPropertyChanged;
-                    }
-                }
-            };
-
-            LoadData();
         }
 
         private void TaskSelectionReset(object obj)
@@ -502,9 +528,60 @@ namespace EFT_item_checker.ViewModel
             Document.Instance.Reset();
         }
 
+        /// <summary>
+        /// 아이템 선택시 Description 및 위키 링크 업데이트
+        /// </summary>
+        /// <param name="item"></param>
+        private void ItemClicked(RequiredItem item)
+        {
+            _linkUrl = item.Item.WikiLink;
+
+            Description = "≫ " + item.Item.Name + "\n";
+            Description += "Requied Tasks : ";
+
+            var requiredTask = TaskList.Where(task => task.RequiredItems != null && task.RequiredItems.Any(ri => ri.Item.Id == item.Item.Id));
+
+            foreach (var task in requiredTask)
+            {
+                Description += "\n\t" + task.Name;
+            }
+
+            _task = null;
+            OnPropertyChanged(nameof(Description));
+        }
+
+        /// <summary>
+        /// task 선택 시 Description 및 위키 링크 업데이트
+        /// </summary>
+        private void DescriptionUpdate()
+        {
+            if (_task == null)
+            {
+                _linkUrl = WikiUrl;
+            }
+            else if (_task.Type == TaskType.Quest)
+            {
+                _linkUrl = _task?.WikiLink ?? WikiUrl;
+            }
+            else if (_task.Type == TaskType.Station)
+            {
+                _linkUrl = HideoutWikiUrl;
+            }
+
+            Description = "≫ " + (_task?.Name ?? "") + "\n";
+            Description += "Trader : " + (_task?.Trader.ToString() ?? "") + "\n";
+            Description += "Kappa " + (_task.IsKappa ? "○" : "×");
+
+            OnPropertyChanged(nameof(Description));
+        }
+
+        /// <summary>
+        /// 위키 링크 열기
+        /// </summary>
+        /// <param name="obj"></param>
         private void ExecuteOpenLink(object obj)
         {
-            var url = SelectedTask?.WikiLink ?? WikiUrl;
+            var url = _linkUrl ?? WikiUrl;
 
             if (!string.IsNullOrEmpty(url))
             {
@@ -540,10 +617,7 @@ namespace EFT_item_checker.ViewModel
         private void LoadDataCheck()
         {
             // 데이터가 모두 로드되면 TaskList와 ValidItems를 초기화합니다.
-
-            ValidItems = TaskManager.Instance.AllItems
-                .Where(item => !string.IsNullOrWhiteSpace(item.IconPath))
-                .ToDictionary(item => item.Id, item => item);
+            ValidItems = TaskManager.Instance.AllItems.ToDictionary(item => item.Id, item => item);
 
             TaskList.Clear();
 
@@ -571,23 +645,36 @@ namespace EFT_item_checker.ViewModel
             ControlEnabled = true;
             OnPropertyChanged(nameof(ControlEnabled));
 
-            UpdateItemLists();
+            // 최초 1회만 Collects를 이용해 FilteredItems의 Quantity를 초기화
+            UpdateItemLists(useCollects: true);
         }
 
-        public Dictionary<string, Item> ValidItems { get; private set; } = new Dictionary<string, Item>();
+        
 
         /// <summary>
-        /// TaskList에서 체크박스 옵션에 따라 Type, IsKappa를 필터링
-        /// 선택되지 않은 Task의 RequiredItems를 아이템별로 수량을 합산하여 FilteredItems로 변환
+        /// Task의 RequiredItems를 아이템별로 수량을 합산하여 FilteredItems로 변환
         /// </summary>
-        private void UpdateItemLists()
+        private void UpdateItemLists(bool useCollects = false)
         {
-            // TaskList 필터링
-            var filteredTasks = TaskList.Where(task => IsCurrentTask(task));
+            // 1. 아이템의 Quantity 정보 저장
+            if (useCollects)
+            {
+                _allItemQuantities = Document.Instance.collects != null
+                    ? new Dictionary<string, int>(Document.Instance.collects)
+                    : new Dictionary<string, int>();
+            }
+            else
+            {
+                foreach (var item in FilteredItems)
+                {
+                    _allItemQuantities[item.Item.Id] = item.Quantity;
+                }
+            }
 
-            // 선택되지 않은 Task만 대상으로 아이템 집계
+            // 2. TaskList 필터링
+            var filteredTasks = TaskList.Where(t => IsCurrentTask(t) && !t.IsSelected);
+
             var grouped = filteredTasks
-                .Where(task => !task.IsSelected)
                 .SelectMany(task => task.RequiredItems ?? Enumerable.Empty<RequiredItem>())
                 .Where(ri => ri.Item != null
                              && !string.IsNullOrWhiteSpace(ri.Item.Id)
@@ -596,21 +683,32 @@ namespace EFT_item_checker.ViewModel
                 .Select(g =>
                 {
                     var first = g.First();
-                    var itemWithIcon = ValidItems[first.Item.Id];
+                    var itemInfo = ValidItems[first.Item.Id];
+
+                    int quantity = _allItemQuantities.TryGetValue(first.Item.Id, out var q) ? q : 0;
+
                     return new RequiredItem
                     {
-                        Item = itemWithIcon,
-                        Quantity = g.Sum(x => x.Quantity),
-                        FoundInRaid = g.Any(x => x.FoundInRaid)
+                        Item = itemInfo,
+                        Required = g.Sum(x => x.Required),
+                        FoundInRaid = g.Any(x => x.FoundInRaid),
+                        Quantity = quantity
                     };
                 });
 
-            FilteredItems.Clear();
+            // 3. 검색어 필터링 및 정렬
+            var searchItems = grouped
+                .Where(x => x.Item.Name.Contains(SearchItemText, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(x => x.Item.Name);
 
-            foreach (var item in grouped)
+            var orderedItems = ItemSortElement switch
             {
-                FilteredItems.Add(item);
-            }
+                ItemSortType.Category => searchItems.OrderBy(x => x.Item.Category),
+                ItemSortType.Collection_Rate => searchItems.OrderBy(x => x.Quantity / x.Required),
+                _ => searchItems
+            };
+
+            FilteredItems = new ObservableCollection<RequiredItem>(orderedItems);
 
             OnPropertyChanged(nameof(VisibleTaskList));
         }
@@ -658,6 +756,8 @@ namespace EFT_item_checker.ViewModel
                     {
                         // 선행 Task들(IsSelected = true)
                         SetPredecessorsSelected(changedTask, new HashSet<string>());
+
+                        //해당 퀘스트의 아이템 필요량만큼 수집 아이템 수량을 감소
                     }
                     else
                     {
@@ -665,6 +765,7 @@ namespace EFT_item_checker.ViewModel
                         SetSuccessorsSelected(changedTask, new HashSet<string>());
                     }
                 }
+
                 UpdateItemLists();
             }
         }
@@ -682,6 +783,9 @@ namespace EFT_item_checker.ViewModel
                 if (preTask != null && preTask.IsSelected != true)
                 {
                     preTask.IsSelected = true;
+
+                    //해당 퀘스트의 아이템 필요량만큼 수집 아이템 수량을 감소
+
                     SetPredecessorsSelected(preTask, visited);
                 }
             }
@@ -701,6 +805,9 @@ namespace EFT_item_checker.ViewModel
                 }
             }
         }
+
+        #region interface implement
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected void OnPropertyChanged(string propertyName)
@@ -711,8 +818,13 @@ namespace EFT_item_checker.ViewModel
         public void Dispose()
         {
             Document.Instance.Selections = TaskList.Where(Task => Task.IsSelected).Select(task => task.Id).ToList();
+            Document.Instance.collects = FilteredItems
+                .Where(item => item.Quantity > 0)
+                .ToDictionary(item => item.Item.Id, item => item.Quantity);
 
             Document.Instance.Dispose();
         }
+
+        #endregion
     }
 }

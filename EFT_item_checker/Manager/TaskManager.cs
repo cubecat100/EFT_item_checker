@@ -104,7 +104,7 @@ namespace EFT_item_checker.Service
                             stationData.RequiredItems.Add(new RequiredItem
                             {
                                 Item = item,
-                                Quantity = itemReq.Count,
+                                Required = itemReq.Count,
                                 FoundInRaid = true,
                             });
                         }
@@ -168,9 +168,15 @@ namespace EFT_item_checker.Service
 
                 AllQuests.Clear();
 
+                int cnt = 0;
+
                 foreach (var t in DataObj.Data.Tasks)
                 {
-                    if (t.Objectives == null || t.Objectives.Count == 0) continue;
+                    if (t.Objectives == null || t.Objectives.Count == 0)
+                    {
+                        cnt++;
+                        continue;
+                    }
 
                     var taskData = new Task
                     {
@@ -182,23 +188,41 @@ namespace EFT_item_checker.Service
                         Trader = Document.Instance.GetTraderById(t.Trader?.Id),
                     };
 
-                    foreach (var obj in t.Objectives)
+                    if(t.Id == "657315ddab5a49b71f098853") //First in Line, 의료용품 3개
                     {
-                        if (obj.Item == null) continue;
-                        var item = new Item
-                        {
-                            Id = obj.Item.Id,
-                            Name = obj.Item.Name,
-                            ShortName = obj.Item.ShortName,
-                            IconPath = obj.Item.IconLink
-                        };
-
                         taskData.RequiredItems.Add(new RequiredItem
                         {
-                            Item = item,
-                            Quantity = obj.Count,
-                            FoundInRaid = obj.FoundInRaid
+                            Item = new Item() 
+                            { 
+                                Id = "any_medicine_items",
+                                Name = "any medicine items",
+                                ShortName = "any_medicine",
+                            },
+                            Required = 3,
+                            FoundInRaid = true
                         });
+                    }
+                    else
+                    {
+                        foreach (var ItemData in t.Objectives)
+                        {
+                            if (ItemData.Item == null) continue;
+
+                            var item = new Item
+                            {
+                                Id = ItemData.Item.Id,
+                                Name = ItemData.Item.Name,
+                                ShortName = ItemData.Item.ShortName,
+                                IconPath = ItemData.Item.IconLink
+                            };
+
+                            taskData.RequiredItems.Add(new RequiredItem
+                            {
+                                Item = item,
+                                Required = ItemData.Count,
+                                FoundInRaid = ItemData.FoundInRaid
+                            });
+                        }
                     }
 
                     // 선행 퀘스트가 있는 경우 추가
@@ -260,11 +284,22 @@ namespace EFT_item_checker.Service
                         Id = item.Id,
                         Name = item.Name,
                         ShortName = item.ShortName,
-                        IconPath = item.IconLink
+                        IconPath = item.IconLink,
+                        WikiLink = item.WikiLink
                     };
 
                     AllItems.Add(itemData);
                 }
+
+                var any_medicine = new Model.Item
+                {
+                    Id = "any_medicine_items",
+                    Name = "any medicine items",
+                    ShortName = "any_medicine",
+                    IconPath = "",
+                };
+
+                AllItems.Add(any_medicine);
 
                 _isLoadedItems = true;
 
