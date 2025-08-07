@@ -28,6 +28,14 @@ namespace EFT_item_checker
         private string _selectionsFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "selections.json");
         private string _itemCollectFilepath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "collects.json");
 
+        private Dictionary<string, List<string>> _editionTaskMap;
+        private const string _stashId = "5d484fc0654e76006657e0ab";
+
+        public List<string> AllowedTaskIds
+        {
+            get => _editionTaskMap[Settings[SettingType.GameEdition]];
+        }
+
         private Document()
         {
 
@@ -35,6 +43,15 @@ namespace EFT_item_checker
 
         public void Init()
         {
+            _editionTaskMap = new Dictionary<string, List<string>>
+            { 
+                { EditionType.Standard.ToString(),              Enumerable.Range(1, 1).Select(i => $"{_stashId}-{i}").ToList() },
+                { EditionType.Left_Behind.ToString(),           Enumerable.Range(1, 2).Select(i => $"{_stashId}-{i}").ToList() },
+                { EditionType.Prepare_for_Escape.ToString(),    Enumerable.Range(1, 3).Select(i => $"{_stashId}-{i}").ToList() },
+                { EditionType.Edge_of_Darkness.ToString(),      Enumerable.Range(1, 4).Select(i => $"{_stashId}-{i}").ToList() },
+                { EditionType.The_Unheard.ToString(),           Enumerable.Range(1, 4).Select(i => $"{_stashId}-{i}").ToList() },
+            };
+
             LoadSettings();
             LoadSelections();
 
@@ -114,6 +131,7 @@ namespace EFT_item_checker
         {
             Settings[SettingType.Language] = LanguageType.en.ToString();
             Settings[SettingType.TaskSort] = SortType.Completed.ToString();
+            Settings[SettingType.GameEdition] = EditionType.Standard.ToString();
 
             SaveSettings();
         }

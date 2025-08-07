@@ -116,6 +116,8 @@ namespace EFT_item_checker.Model
             }
         }
 
+        public bool IsEditionPass { get; set; } = false;
+
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string name = null)
         {
@@ -143,7 +145,7 @@ namespace EFT_item_checker.Model
         //언어 설정
         Language,
         TaskSort,
-
+        GameEdition,
     }
 
     public enum LanguageType
@@ -176,5 +178,14 @@ namespace EFT_item_checker.Model
         Name,
         Category,
         Collection_Rate,
+    }
+
+    public enum EditionType
+    {
+        Standard,
+        Left_Behind,
+        Prepare_for_Escape,
+        Edge_of_Darkness,
+        The_Unheard,
     }
 }

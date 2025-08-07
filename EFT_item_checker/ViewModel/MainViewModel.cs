@@ -92,6 +92,30 @@ namespace EFT_item_checker.ViewModel
             }
         }
 
+        public List<string> GameEditions => Enum.GetNames(typeof(EditionType)).ToList();
+
+        public string SelectedEdition
+        {
+            get => Document.Instance.Settings[SettingType.GameEdition];
+            set
+            {
+                if(Document.Instance.Settings[SettingType.GameEdition] != value)
+                {
+                    var res = MessageBox.Show("게임에디션을 변경하면 진행상황이 초기화됩니다.\n진행하시겠습니까?", "게임에디션 변경", MessageBoxButton.OKCancel, MessageBoxImage.Question);
+
+                    if (res != MessageBoxResult.OK) return;
+
+                    Document.Instance.Settings[SettingType.GameEdition] = value;
+
+                    ChangedGameEdition();
+
+                    OnPropertyChanged(nameof(SelectedEdition));
+                }
+            }
+        }
+
+        
+
         private ObservableCollection<RequiredItem> _filteredItems = new ObservableCollection<RequiredItem>();
         public ObservableCollection<RequiredItem> FilteredItems { 
             get => _filteredItems;
@@ -167,7 +191,10 @@ namespace EFT_item_checker.ViewModel
                     _isSelectableQuestsVisible = value;
 
                     UpdateTaskVisibility();
+
                     OnPropertyChanged(nameof(IsQuestsVisible));
+                    OnPropertyChanged(nameof(IsKappaQuestsVisible));
+                    OnPropertyChanged(nameof(IsSelectableQuestsVisible));
                 }
             }
         }
@@ -187,7 +214,10 @@ namespace EFT_item_checker.ViewModel
                     }
 
                     UpdateTaskVisibility();
+
+                    OnPropertyChanged(nameof(IsQuestsVisible));
                     OnPropertyChanged(nameof(IsKappaQuestsVisible));
+                    OnPropertyChanged(nameof(IsSelectableQuestsVisible));
                 }
             }
         }
@@ -207,6 +237,9 @@ namespace EFT_item_checker.ViewModel
                     }
 
                     UpdateTaskVisibility();
+
+                    OnPropertyChanged(nameof(IsQuestsVisible));
+                    OnPropertyChanged(nameof(IsKappaQuestsVisible));
                     OnPropertyChanged(nameof(IsSelectableQuestsVisible));
                 }
             }
@@ -642,6 +675,16 @@ namespace EFT_item_checker.ViewModel
                 }
             }
 
+            //게임 에디션에 따른 필터링
+            foreach (var task in TaskList)
+            {
+                if (Document.Instance.AllowedTaskIds.Contains(task.Id))
+                {
+                    task.IsEditionPass = true;
+                    task.IsSelected = true;
+                }
+            }
+
             ControlEnabled = true;
             OnPropertyChanged(nameof(ControlEnabled));
 
@@ -744,32 +787,6 @@ namespace EFT_item_checker.ViewModel
             }
         }
 
-
-        // Task의 선택 상태가 변경되면 선행/후행 Task들의 선택 상태를 업데이트합니다.
-        private void OnTaskSelectionChanged(object? sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(Model.Task.IsSelected))
-            {
-                if (sender is Model.Task changedTask)
-                {
-                    if (changedTask.IsSelected)
-                    {
-                        // 선행 Task들(IsSelected = true)
-                        SetPredecessorsSelected(changedTask, new HashSet<string>());
-
-                        //해당 퀘스트의 아이템 필요량만큼 수집 아이템 수량을 감소
-                    }
-                    else
-                    {
-                        // 후행 Task들(IsSelected = false)
-                        SetSuccessorsSelected(changedTask, new HashSet<string>());
-                    }
-                }
-
-                UpdateItemLists();
-            }
-        }
-
         // 선행 Task들의 IsSelected를 true로 설정
         private void SetPredecessorsSelected(Model.Task task, HashSet<string> visited)
         {
@@ -780,7 +797,7 @@ namespace EFT_item_checker.ViewModel
                 if (!visited.Add(reqId)) continue;
 
                 var preTask = TaskList.FirstOrDefault(t => t.Id == reqId);
-                if (preTask != null && preTask.IsSelected != true)
+                if (preTask != null && preTask.IsSelected == false && preTask.IsEditionPass == false)
                 {
                     preTask.IsSelected = true;
 
@@ -798,10 +815,27 @@ namespace EFT_item_checker.ViewModel
             {
                 if (!visited.Add(succTask.Id)) continue;
 
-                if (succTask.IsSelected != false)
+                if (succTask.IsSelected == true && succTask.IsSelected == true)
                 {
                     succTask.IsSelected = false;
                     SetSuccessorsSelected(succTask, visited);
+                }
+            }
+        }
+
+        private void ChangedGameEdition()
+        {
+            foreach (var task in TaskList)
+            {
+                if (Document.Instance.AllowedTaskIds.Contains(task.Id))
+                {
+                    task.IsEditionPass = true;
+                    task.IsSelected = true;
+                }
+                else
+                {
+                    task.IsEditionPass = false;
+                    task.IsSelected = false;
                 }
             }
         }

@@ -285,7 +285,8 @@ namespace EFT_item_checker.Service
                         Name = item.Name,
                         ShortName = item.ShortName,
                         IconPath = item.IconLink,
-                        WikiLink = item.WikiLink
+                        WikiLink = item.WikiLink,
+                        Category = item.Category?.Parent?.Name ?? "Item",
                     };
 
                     AllItems.Add(itemData);
@@ -297,6 +298,7 @@ namespace EFT_item_checker.Service
                     Name = "any medicine items",
                     ShortName = "any_medicine",
                     IconPath = "",
+                    Category = "Item",
                 };
 
                 AllItems.Add(any_medicine);

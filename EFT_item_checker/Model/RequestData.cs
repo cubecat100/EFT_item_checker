@@ -28,6 +28,18 @@ namespace EFT_item_checker.Model
         public string IconLink { get; set; } = "";
         public DateTime Updated { get; set; } // 업데이트 날짜
         public string WikiLink { get; set; }
+
+        public RequestCategory Category { get; set; } // 카테고리 정보
+    }
+
+    public class RequestCategory
+    {
+        public RequestCategoryParent Parent { get; set; } // 상위 카테고리 정보
+    }
+
+    public class RequestCategoryParent
+    {
+        public string Name { get; set; } // 상위 카테고리 이름
     }
 
     public class RequestTaskData
