@@ -35,6 +35,13 @@ jobs:
       # 4. 애플리케이션 빌드 및 게시
       - name: Build and publish
         run: dotnet publish EFT_item_checker/EFT_item_checker.csproj --configuration Release --output ./publish --no-restore
+
+      # 📁 하위 폴더 구조 생성
+      - name: Move to subfolder for safer zip structure
+        run: |
+          mkdir ./package
+          mkdir ./package/EFT_item_checker
+          xcopy /E /I /Y .\publish\* .\package\EFT_item_checker\
       
       # 5. 게시된 파일들을 ZIP 파일로 압축
       - name: Zip the publish folder
